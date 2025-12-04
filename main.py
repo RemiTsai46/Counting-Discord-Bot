@@ -1,10 +1,13 @@
 import discord
 from discord.ext import commands
 import asyncio
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+token = os.getenv('TOKEN')
 intents = discord.Intents.all()
 intents.message_content = True
-token = 'MTAwNzU5MDAxMDkyMjQ3NTYxMA.Gcwtov.HW4OTL9ZDDM4bc_4hLBs7spYyllvzgJEIln_Qc'
 
 #client = discord.Client(intents=intents)
 bot = commands.Bot(command_prefix="k!",intents=intents)
@@ -23,35 +26,36 @@ async def on_message(message):
     '''if message.content == "hello":
         await message.reply("hello") '''
 
-    msgDelta = False
-    numCurr = 0
-    numPrev = 0
-    messages = [[message.content,message.author.bot] async for message in message.channel.history(limit=1000)]
+    msgDelta = False # ?
+    num = [0, 0] # curr, prev
+    name = ["", ""] # curr, prev
+    messages = [[message.content,message.author] async for message in message.channel.history(limit=1000)]
 
     for msg in messages:
-        if msg[1] == False:
+        if msg[1].bot == False:
             try:
                 numDelta = int(msg[0])
+                nameDelta = msg[1]
             except ValueError:
                 continue
             else:
                 if msgDelta == True:
-                    numPrev = numDelta
-                    if numCurr != numPrev + 1:
-                        await message.channel.send(f"Hey! You counted wrong! The next number is: {numPrev + 1}", delete_after = 5, reference = message)
+                    num[1] = numDelta
+                    name[1] = nameDelta
+                    if num[0] != num[1] + 1:
+                        await message.channel.send(f"Hey! You counted wrong! The next number is: {num[1] + 1}", delete_after = 5, reference = message)
                         await message.delete()
-                        numCurr = 0
-                        numPrev = 0
                         msgDelta = False
                         messages = None
-                        break
-                    else:
-                        numCurr = 0
-                        numPrev = 0
-                        await message.channel.send("success", delete_after = 5)
-                        break
+                    elif name[0] == name[1]:
+                        await message.channel.send(f"Hey! You can't count twice! The next number is: {num[1] + 1}", delete_after = 5, reference = message)
+                        await message.delete()
+                    num = [0, 0]
+                    name = ["", ""]
+                    break
                 else:
-                    numCurr = numDelta
+                    num[0] = numDelta
+                    name[0] = nameDelta
                     msgDelta = True
         else:
             continue 
