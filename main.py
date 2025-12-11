@@ -16,14 +16,15 @@ async def load_extensions():
         if filename.endswith('.py'):
             await bot.load_extension(f'cogs.{filename[:-3]}')
 
-@bot.command
-async def sync(ctx):
-    bot.tree.copy_global_to(guild = ctx.guild)
-    synced = await bot.tree.sync(guild = ctx.guild)
-    await ctx.send("synced")
+# @bot.command()
+# async def sync(ctx):
+#     bot.tree.copy_global_to(guild = ctx.guild)
+#     synced = await bot.tree.sync(guild = ctx.guild)
+#     await ctx.send("synced")
 
 @bot.event
 async def on_ready():
+    await bot.tree.sync()
     print("Bot is up!")
 
 async def main():
@@ -33,5 +34,3 @@ async def main():
  
 if __name__ == '__main__':
     asyncio.run(main())
-
-bot.run(token)
