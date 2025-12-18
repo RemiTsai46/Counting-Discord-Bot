@@ -9,12 +9,14 @@ class OnMessage(commands.Cog):
   	# cog 裡面的 decorator 改成這個
     @commands.Cog.listener()
     async def on_message(self, message): #要把 self 給放進去
-       
+        
+        # print(message.content)
+        
         # 後面這邊都是一樣的
         
         if message.author.bot:
             return
-       
+        
         if "bot" in message.content.lower() and "hi" in message.content.lower():
             await message.channel.send(f"alle {message.author.display_name}!")
     
