@@ -15,13 +15,14 @@ bot = commands.Bot(command_prefix="k!",intents=intents)
 
 async def load_extensions():
     for filename in os.listdir('./cogs'):
-        if filename.endswith('.py'):
+        exc = ["__init__.py"]
+        if filename.endswith('.py') and filename not in exc:
             await bot.load_extension(f'cogs.{filename[:-3]}')
 
 # @bot.command()
 async def fixsync(ctx):
-    msg = await ctx.send("修理完畢")
- 
+    msg = await ctx.send("Sync fixed")
+
     bot.tree.clear_commands(guild=None)
     await bot.tree.sync()
  
@@ -31,6 +32,15 @@ async def fixsync(ctx):
     await bot.tree.sync(guild=ctx.guild)
  
     await msg.edit(content="ok")
+
+@bot.command()
+async def cmdcnt(ctx):
+    guild_cmds = await bot.tree.fetch_commands(guild=ctx.guild)
+    global_cmds = await bot.tree.fetch_commands()
+
+    print(
+        f"Guild: {len(guild_cmds)} | Global: {len(global_cmds)}"
+    )
 
 @bot.event
 async def on_ready():
@@ -42,15 +52,14 @@ async def on_ready():
 
     bot.tree.clear_commands(guild=None)
     await bot.tree.sync()
- 
-    await load_extensions()
+    # print("fixed")
 
 # 放結尾
 app = Flask('')
  
 @app.route('/')
 def home():
-    return "上線了"
+    return "app is online"
  
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
