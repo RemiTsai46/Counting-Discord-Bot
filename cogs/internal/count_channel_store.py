@@ -23,7 +23,7 @@ class CountChannelStore:
                 ssl="require",                 # must for Supabase
                 min_size=1,                     # safest for pooler
                 max_size=1,                     # avoid pooler hangs
-                max_inactive_connection_lifetime=60,
+                statement_cache_size=0, 
                 command_timeout=10,
             ),
             timeout=15
@@ -34,11 +34,9 @@ class CountChannelStore:
             await conn.execute("SELECT 1")
 
     async def get(self, guild_id: int) -> list[int]:
-        async with self.pool.acquire() as conn:
-            rows = await conn.fetch(
-                "SELECT channel_id FROM counting_channels WHERE guild_id=$1",
-                guild_id
-            )
+        conn = await asyncpg.connect(os.getenv("DATABASE_URL"), ssl="require")
+        rows = await conn.fetch("SELECT channel_id FROM counting_channels WHERE guild_id=$1", guild_id)
+        await conn.close()
         return [r["channel_id"] for r in rows]
 
     async def add(self, guild_id: int, channel_id: int):
