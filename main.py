@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 from flask import Flask
 from threading import Thread
+from cogs.internal.count_channel_store import store
 
 load_dotenv()
 token = os.getenv('TOKEN')
@@ -52,7 +53,18 @@ async def on_ready():
 
     bot.tree.clear_commands(guild=None)
     await bot.tree.sync()
-    # print("fixed")
+    print("global cmds fixed")
+
+    import asyncio
+
+    for i in range(3):
+        try:
+            await store.connect()
+            break
+        except Exception as e:
+            print(f"DB connection attempt {i+1} failed:", e)
+            await asyncio.sleep(5)
+    print("DB pool connected")
 
 # 放結尾
 app = Flask('')

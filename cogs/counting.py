@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from cogs.internal.count_channel_store import CountChannelStore
+from cogs.internal.count_channel_store import store
 import asyncio
 import os
 
@@ -11,12 +11,10 @@ intents.message_content = True
 class Counting(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        # self.data = load_channels()  # load ONCE
-        self.func = CountChannelStore()  # create instance
 
     async def cog_load(self):
         # called when cog is loaded
-        await self.func.connect()
+        pass
 
     # ----- COUNT CHANNEL LINK -----
 
@@ -24,42 +22,45 @@ class Counting(commands.Cog):
     @app_commands.command(name="link", description="Set the desired channel as a counting channel.")
     @app_commands.checks.has_permissions(manage_guild=True)
     async def link(self, interaction: discord.Interaction, channel: discord.TextChannel):
+        await interaction.response.defer()
         guild_id = interaction.guild.id
         channel_id = channel.id
-        channels = await self.func.get(guild_id)
+        channels = await store.get(guild_id)
 
         if channel_id in channels:
-            return await interaction.response.send_message("This channel is already linked.")
+            return await interaction.followup.send("This channel is already linked.")
 
-        await self.func.add(guild_id,channel_id)
-        await interaction.response.send_message(f"Linked {channel.mention}")
+        await store.add(guild_id,channel_id)
+        await interaction.followup.send(f"Linked {channel.mention}")
 
     # unlink
     @app_commands.command(name="unlink", description="Remove the desired channel from the counting channel list.")
     @app_commands.checks.has_permissions(manage_guild=True)
     async def unlink(self, interaction: discord.Interaction, channel: discord.TextChannel):
+        await interaction.response.defer()
         guild_id = interaction.guild.id
         channel_id = channel.id
-        channels = await self.func.get(guild_id)
+        channels = await store.get(guild_id)
 
         if channel_id not in channels:
-            return await interaction.response.send_message("This channel is not linked.")
+            return await interaction.followup.send("This channel is not linked.")
 
-        await self.func.remove(guild_id,channel_id)
-        await interaction.response.send_message(f"Unlinked {channel.mention}")
+        await store.remove(guild_id,channel_id)
+        await interaction.followup.send(f"Unlinked {channel.mention}")
 
     # linked
     @app_commands.command(name="linked", description="Show all linked counting channels")
     @app_commands.checks.has_permissions(manage_guild=True)
     async def linked(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         guild_id = interaction.guild.id
-        channels = await self.func.get(guild_id)
+        channels = await store.get(guild_id)
 
         if not channels:
-            return await interaction.response.send_message("No linked channels.")
+            return await interaction.followup.send("No linked channels.")
 
         mentions = [f"<#{cid}>" for cid in channels]
-        await interaction.response.send_message("Linked channels:\n" + "\n".join(mentions))
+        await interaction.followup.send("Linked channels:\n" + "\n".join(mentions))
 
     # ----- COUNT DETER -----
     @commands.Cog.listener()
